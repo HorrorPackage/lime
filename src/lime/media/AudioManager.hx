@@ -1,5 +1,7 @@
+// shadowing this class because we're unable to apply the config files to mobile during __init__
 package lime.media;
 
+import backend.ALSoftConfig;
 import lime.system.CFFI;
 import lime.app.Application;
 import haxe.Timer;
@@ -35,6 +37,9 @@ class AudioManager
 				{
 					var alc = context.openal;
 
+					#if (desktop || mobile)
+					ALSoftConfig.init();
+					#end
 					var device = alc.openDevice();
 					var ctx = alc.createContext(device);
 					alc.makeContextCurrent(ctx);
@@ -47,7 +52,8 @@ class AudioManager
 					{
 						alc.disable(AL.STOP_SOURCES_ON_DISCONNECT_SOFT);
 
-						Application.current.onUpdate.add((_) -> {
+						Application.current.onUpdate.add((_) ->
+						{
 							AudioManager.update();
 						});
 
@@ -163,6 +169,7 @@ class AudioManager
 	}
 
 	@:noCompletion static var __audioDeviceChanged:Bool = false;
+
 	@:noCompletion static function __deviceEventCallback(eventType:Int, deviceType:Int, device:Dynamic,#if hl message:hl.Bytes #else message:String #end, userParam:Dynamic):Void
 	{
 		#if !lime_doc_gen
